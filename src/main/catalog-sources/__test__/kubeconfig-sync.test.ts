@@ -20,6 +20,7 @@ import appVersionInjectable from "../../../common/get-configuration-file-model/a
 import clusterManagerInjectable from "../../cluster-manager.injectable";
 import directoryForUserDataInjectable from "../../../common/app-paths/directory-for-user-data/directory-for-user-data.injectable";
 import directoryForTempInjectable from "../../../common/app-paths/directory-for-temp/directory-for-temp.injectable";
+import readFileSyncInjectable from "../../../common/fs/read-file-sync.injectable";
 
 jest.mock("electron", () => ({
   app: {
@@ -47,6 +48,7 @@ describe("kubeconfig-sync.source tests", () => {
 
     di.override(directoryForUserDataInjectable, () => "some-directory-for-user-data");
     di.override(directoryForTempInjectable, () => "some-directory-for-temp");
+    di.override(readFileSyncInjectable, () => fs.readFileSync);
 
     di.override(clusterStoreInjectable, () =>
       ClusterStore.createInstance({ createCluster: () => null as never }),

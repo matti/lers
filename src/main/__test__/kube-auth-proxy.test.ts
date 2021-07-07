@@ -18,7 +18,6 @@ jest.mock("winston", () => ({
     splat: jest.fn(),
   },
   createLogger: jest.fn().mockReturnValue({
-    silly: jest.fn(),
     debug: jest.fn(),
     log: jest.fn(),
     info: jest.fn(),
@@ -59,6 +58,8 @@ import getConfigurationFileModelInjectable from "../../common/get-configuration-
 import appVersionInjectable from "../../common/get-configuration-file-model/app-version/app-version.injectable";
 import directoryForUserDataInjectable from "../../common/app-paths/directory-for-user-data/directory-for-user-data.injectable";
 import directoryForTempInjectable from "../../common/app-paths/directory-for-temp/directory-for-temp.injectable";
+import readFileSyncInjectable from "../../common/fs/read-file-sync.injectable";
+import { readFileSync } from "fs";
 
 console = new Console(stdout, stderr);
 
@@ -111,8 +112,8 @@ describe("kube auth proxy tests", () => {
 
     mockFs(mockMinikubeConfig);
 
+    di.override(readFileSyncInjectable, () => readFileSync); // TODO: don't bypass injectables
     createCluster = di.inject(createClusterInjectionToken);
-
     createKubeAuthProxy = di.inject(createKubeAuthProxyInjectable);
 
     UserStore.createInstance();

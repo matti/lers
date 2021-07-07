@@ -20,6 +20,7 @@ import loggerInjectable from "../../common/logger.injectable";
 import type { Logger } from "../../common/logger";
 import assert from "assert";
 import directoryForUserDataInjectable from "../../common/app-paths/directory-for-user-data/directory-for-user-data.injectable";
+import readFileSyncInjectable from "../../common/fs/read-file-sync.injectable";
 
 console = new Console(process.stdout, process.stderr); // fix mockFS
 
@@ -40,7 +41,6 @@ describe("kubeconfig manager tests", () => {
       debug: jest.fn(),
       error: jest.fn(),
       info: jest.fn(),
-      silly: jest.fn(),
     };
 
     di.override(loggerInjectable, () => loggerMock);
@@ -81,6 +81,7 @@ describe("kubeconfig manager tests", () => {
       ensureServer: jest.fn(),
     }));
 
+    di.override(readFileSyncInjectable, () => fse.readFileSync); // TODO: don't bypass injectables
     const createCluster = di.inject(createClusterInjectionToken);
 
     createKubeconfigManager = di.inject(createKubeconfigManagerInjectable);

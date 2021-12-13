@@ -48,6 +48,7 @@ import autoRegistrationInjectable from "../common/k8s-api/api-manager/auto-regis
 import assert from "assert";
 import { beforeFrameStartsInjectionToken } from "./before-frame-starts/before-frame-starts-injection-token";
 import { runManyFor } from "../common/runnable/run-many-for";
+import { EntityPreferencesStore } from "../common/entity-preferences-store";
 
 configurePackages(); // global packages
 registerCustomThemes(); // monaco editor themes
@@ -138,6 +139,8 @@ export async function bootstrap(di: DiContainer) {
   const clusterStore = di.inject(clusterStoreInjectable);
 
   await clusterStore.loadInitialOnRenderer();
+
+  EntityPreferencesStore.createInstance();
 
   // HotbarStore depends on: ClusterStore
   di.inject(hotbarStoreInjectable).load();

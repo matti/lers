@@ -14,12 +14,13 @@ import clusterStoreInjectable from "../../../common/cluster-store/cluster-store.
 import { getDiForUnitTesting } from "../../getDiForUnitTesting";
 import { createClusterInjectionToken } from "../../../common/cluster/create-cluster-injection-token";
 import directoryForKubeConfigsInjectable from "../../../common/app-paths/directory-for-kube-configs/directory-for-kube-configs.injectable";
-import { ClusterStore } from "../../../common/cluster-store/cluster-store";
 import getConfigurationFileModelInjectable from "../../../common/get-configuration-file-model/get-configuration-file-model.injectable";
 import appVersionInjectable from "../../../common/get-configuration-file-model/app-version/app-version.injectable";
 import clusterManagerInjectable from "../../cluster-manager.injectable";
 import directoryForUserDataInjectable from "../../../common/app-paths/directory-for-user-data/directory-for-user-data.injectable";
 import directoryForTempInjectable from "../../../common/app-paths/directory-for-temp/directory-for-temp.injectable";
+import { iter } from "../../../common/utils";
+import fsInjectable from "../../../common/fs/fs.injectable";
 
 jest.mock("electron", () => ({
   app: {
@@ -48,10 +49,9 @@ describe("kubeconfig-sync.source tests", () => {
     di.override(directoryForUserDataInjectable, () => "some-directory-for-user-data");
     di.override(directoryForTempInjectable, () => "some-directory-for-temp");
 
-    di.override(clusterStoreInjectable, () =>
-      ClusterStore.createInstance({ createCluster: () => null as never }),
-    );
-
+    di.permitSideEffects(fsInjectable);
+    di.unoverride(clusterStoreInjectable);
+    di.permitSideEffects(clusterStoreInjectable);
     di.permitSideEffects(getConfigurationFileModelInjectable);
     di.permitSideEffects(appVersionInjectable);
 
@@ -60,13 +60,10 @@ describe("kubeconfig-sync.source tests", () => {
       createCluster: di.inject(createClusterInjectionToken),
       clusterManager: di.inject(clusterManagerInjectable),
     });
-
-    di.inject(clusterStoreInjectable);
   });
 
   afterEach(() => {
     mockFs.restore();
-    ClusterStore.resetInstance();
   });
 
   describe("configsToModels", () => {
@@ -102,8 +99,8 @@ describe("kubeconfig-sync.source tests", () => {
       const models = configToModels(config, "/bar");
 
       expect(models.length).toBe(1);
-      expect(models[0].contextName).toBe("context-name");
-      expect(models[0].kubeConfigPath).toBe("/bar");
+      expect(models[0][0].contextName).toBe("context-name");
+      expect(models[0][0].kubeConfigPath).toBe("/bar");
     });
   });
 
@@ -154,7 +151,8 @@ describe("kubeconfig-sync.source tests", () => {
 
       expect(rootSource.size).toBe(1);
 
-      const c = rootSource.values().next().value[0] as Cluster;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const c = (iter.first(rootSource.values())!)[0];
 
       expect(c.kubeConfigPath).toBe("/bar");
       expect(c.contextName).toBe("context-name");

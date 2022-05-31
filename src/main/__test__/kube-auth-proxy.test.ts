@@ -3,8 +3,6 @@
  * Licensed under MIT License. See LICENSE in root directory for more information.
  */
 
-import type { ClusterModel } from "../../common/cluster-types";
-
 jest.mock("winston", () => ({
   format: {
     colorize: jest.fn(),
@@ -52,6 +50,7 @@ import { stdout, stderr } from "process";
 import mockFs from "mock-fs";
 import { getDiForUnitTesting } from "../getDiForUnitTesting";
 import createKubeAuthProxyInjectable from "../kube-auth-proxy/create-kube-auth-proxy.injectable";
+import type { CreateCluster } from "../../common/cluster/create-cluster-injection-token";
 import { createClusterInjectionToken } from "../../common/cluster/create-cluster-injection-token";
 import path from "path";
 import spawnInjectable from "../child-process/spawn.injectable";
@@ -65,9 +64,10 @@ console = new Console(stdout, stderr);
 const mockBroadcastIpc = broadcastMessage as jest.MockedFunction<typeof broadcastMessage>;
 const mockSpawn = spawn as jest.MockedFunction<typeof spawn>;
 const mockWaitUntilUsed = waitUntilUsed as jest.MockedFunction<typeof waitUntilUsed>;
+const clusterServerUrl = "https://192.168.64.3:8443";
 
 describe("kube auth proxy tests", () => {
-  let createCluster: (model: ClusterModel) => Cluster;
+  let createCluster: CreateCluster;
   let createKubeAuthProxy: (cluster: Cluster, environmentVariables: NodeJS.ProcessEnv) => KubeAuthProxy;
 
   beforeEach(async () => {
@@ -79,7 +79,7 @@ describe("kube auth proxy tests", () => {
         clusters: [{
           name: "minikube",
           cluster: {
-            server: "https://192.168.64.3:8443",
+            server: clusterServerUrl,
           },
         }],
         "current-context": "minikube",
@@ -128,6 +128,8 @@ describe("kube auth proxy tests", () => {
       id: "foobar",
       kubeConfigPath: "minikube-config.yml",
       contextName: "minikube",
+    }, {
+      clusterServerUrl,
     });
 
     const kap = createKubeAuthProxy(cluster, {});
@@ -220,6 +222,8 @@ describe("kube auth proxy tests", () => {
         id: "foobar",
         kubeConfigPath: "minikube-config.yml",
         contextName: "minikube",
+      }, {
+        clusterServerUrl,
       });
 
       proxy = createKubeAuthProxy(cluster, {});

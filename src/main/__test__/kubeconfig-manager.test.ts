@@ -23,6 +23,8 @@ import directoryForUserDataInjectable from "../../common/app-paths/directory-for
 
 console = new Console(process.stdout, process.stderr); // fix mockFS
 
+const clusterServerUrl = "https://192.168.64.3:8443";
+
 describe("kubeconfig manager tests", () => {
   let clusterFake: Cluster;
   let createKubeconfigManager: (cluster: Cluster) => KubeconfigManager | undefined;
@@ -51,7 +53,7 @@ describe("kubeconfig manager tests", () => {
         clusters: [{
           name: "minikube",
           cluster: {
-            server: "https://192.168.64.3:8443",
+            server: clusterServerUrl,
           },
         }],
         contexts: [{
@@ -89,6 +91,8 @@ describe("kubeconfig manager tests", () => {
       id: "foo",
       contextName: "minikube",
       kubeConfigPath: "minikube-config.yml",
+    }, {
+      clusterServerUrl,
     });
 
     jest.spyOn(KubeconfigManager.prototype, "resolveProxyUrl", "get").mockReturnValue("http://127.0.0.1:9191/foo");
